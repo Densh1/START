@@ -3,11 +3,11 @@
   gather_facts: false
   tasks:
     - name: install postgresql
-      package: 
+      package:
         name: postgresql
         state: present
     - name: install psycopg
-      package: 
+      package:
         name: postgresql-contrib
         state: present
     - name: install libpq-dev
@@ -78,14 +78,14 @@
     - name: pg_hba conf
       blockinfile:
         path: "/etc/postgresql/{{ hostvars[inventory_hostname]['POSTGRES_VERSION'] }}/main/pg_hba.conf"
-        block: | 
+        block: |
           host replication all {{ hostvars[inventory_hostname]['ansible_host'] }}/24 scram-sha-256
           host all all {{ hostvars[inventory_hostname]['ansible_host'] }}/32 trust
     - name: restart postgresql
       service:
         name: postgresql
         state: restarted
-      
+        
 - name: slave config and init
   hosts: host02
   gather_facts: false
@@ -93,9 +93,8 @@
     - name: rm
       command: rm -rf /var/lib/postgresql/{{ hostvars[inventory_hostname]['POSTGRES_VERSION'] }}/
     - name: pg_basebackup
-    
-      command: PGPASSWORD=\{{ hostvars[inventory_hostname]['POSTGRES_PASSWORD'] }} pg_basebackup --pgdata=/var/lib/postgresql/data --host={{ hostvars[inventory_hostname]['POSTGRES_HOST'] }} --username={{ hostvars[inventory_hostname]['DB_REPL_USER'] }}}
-      environment: 
+      command: pg_basebackup -h {{ hostvars[inventory_hostname]['DB_HOST'] }} -D /var/lib/postgresql/{{ hostvars[inventory_hostname]['POSTGRES_VERSION'] }}/main/ -U {{ hostvars[inventor>
+      environment:
         PGPASSWORD: "{{ hostvars[inventory_hostname]['DB_REPL_PASSWORD'] }}"
     - name: chown
       command: chown -R postgres:postgres /var/lib/postgresql/
@@ -103,7 +102,7 @@
       service:
         name: postgresql
         state: restarted
-
+        
 - name: bot
   hosts: host01
   gather_facts: false
@@ -116,11 +115,11 @@
         dest: "{{ hostvars[inventory_hostname]['dir'] }}/repo"
         version: main
     - name: pip install
-      pip: 
+      pip:
         requirements: "{{ hostvars[inventory_hostname]['dir'] }}/repo/requirements.txt"
     - name: mkdir logs
       command: mkdir -p "{{ hostvars[inventory_hostname]['dir'] }}/../logs"
-    - name: run python bot
+    - name: run bot
       command: python3 "{{ hostvars[inventory_hostname]['dir'] }}/repo/bot.py"
       environment:
         TOKEN: "{{ hostvars[inventory_hostname]['TOKEN'] }}"
