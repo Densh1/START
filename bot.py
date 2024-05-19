@@ -245,7 +245,7 @@ def get_phone_numbers(update: Update, context: CallbackContext):
 def get_repl_logs(update: Update, context: CallbackContext) -> None:
     update.message.reply_text('Чтобы получить информацию о логах репликации, нужно подключиться к пользователю с правами root, иначе информация будет недоступна')
     ssh_connect()
-    logs = execute_command('docker logs db_repl')
+    logs = execute_command(f'cat /var/log/postgresql/* | grep repl | tail -n 20')
     update.message.reply_text(logs)
 
 def get_release(update: Update, context: CallbackContext) -> None:
