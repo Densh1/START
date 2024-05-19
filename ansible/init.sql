@@ -1,15 +1,15 @@
-SELECT 'CREATE DATABASE replacedb_database' 
+SELECT 'CREATE DATABASE replacedb_database'
 WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'replacedb_database')\gexec
 DO $$
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_user WHERE usename = 'replacedb_repl_user') THEN
-        CREATE USER replacedb_repl_user WITH REPLICATION ENCRYPTED PASSWORD 'replacedb_repl_password'; 
-    END IF; 
+        CREATE USER replacedb_repl_user WITH REPLICATION ENCRYPTED PASSWORD 'replacedb_repl_password';
+    END IF;
 END $$;
 
 ALTER USER replacepostgres_user WITH PASSWORD 'replacepostgres_password';
 
-\c replaceDB_DATABASE;
+\c replacedb_database;
 CREATE TABLE IF NOT EXISTS emails(
     id INT PRIMARY KEY,
     email VARCHAR(255) NOT NULL
