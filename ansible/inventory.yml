@@ -1,28 +1,28 @@
-all:
+ all:
   vars:
     DB_REPL_USER: repl_user
-    DB_REPL_PASSWORD: 
+    DB_REPL_PASSWORD: Qq12345
     POSTGRES_VERSION: 14
-    DB_HOST: 192.168.0.92
+    DB_HOST: 192.168.220.162
   hosts:
     host01:
-      ansible_host: 192.168.0.92
+      ansible_host: 192.168.220.162
       ansible_user: root
-      ansible_ssh_pass: 
+      ansible_ssh_pass: kali
       github_repo: https://github.com/Densh1/START.git
       dir: /root/ansible
-      TOKEN: 
-      RM_HOST: 192.168.0.92
+      TOKEN: 6855256304:AAFiA7DvvE0WVnOwb6M1CkuOfN1gPEZSPYk
+      RM_HOST: 192.168.220.162
       RM_PORT: 22
       RM_USER: root
-      RM_PASSWORD:
+      RM_PASSWORD: kali
       DB_USER: postgres
-      DB_PASSWORD: 
+      DB_PASSWORD: Qq12345
       DB_PORT: 5432
       DB_DATABASE: bot_database
       DB_REPL_HOST: db_repl
       DB_REPL_PORT: 5433
     host02:
-      ansible_host: 192.168.0.49
+      ansible_host: 192.168.220.146
       ansible_user: root
-      ansible_ssh_pass: 
+      ansible_ssh_pass: kali
