@@ -1,21 +1,20 @@
 FROM postgres:14
 
-ENV POSTGRES_PASSWORD="Qq12345"
-ENV POSTGRES_DB="bot_database"
-ENV POSTGRES_USER="postgres"
+ARG DB_REPL_USER
+ARG DB_REPL_PASSWORD
+ARG DB_DATABASE
 
-ENV DB_REPL_USER="repl_user"
-ENV DB_REPL_PASSWORD="repl_user"
-ENV DB_REPL_HOST="192.168.0.92"
-ENV DB_PORT="5432"
-ENV RM_PORT="5433"
+RUN apt update && apt install sed
+COPY init.sql /init.sql
+RUN sed -i 's/replaceDB_REPL_USER/'"$DB_REPL_USER"'/g' /init.sql
+RUN sed -i 's/replaceDB_REPL_PASSWORD/'"$DB_REPL_PASSWORD"'/g' /init.sql
+RUN sed -i 's/replaceDB_DATABASE/'"$DB_DATABASE"'/g' /init.sql
+RUN mv /init.sql /docker-entrypoint-initdb.d/init.sql
 
-COPY init.sql /docker-entrypoint-initdb.d/
 
-RUN apt-get update && \
-    apt-get install -y openssh-server && \
-    sed -i "s|\${DB_REPL_USER}|${DB_REPL_USER}|g" /docker-entry-point-initdb.d/init.sql && \
-    sed "s|\${DB_REPL_PASSWORD}|${DB_REPL_PASSWORD}|g" /docker-entry-point-initdb.d/init.sql && \
-    useradd --create-home --shell /bin/bash user -p "$(openssl passwd -1 user)"
-
-EXPOSE ${DB_PORT}
+RUN echo "wal_level=replica" >> /usr/share/postgresql/postgresql.conf.sample
+RUN echo "hot_standby=on" >> /usr/share/postgresql/postgresql.conf.sample
+RUN echo "max_wal_senders=10" >> /usr/share/postgresql/postgresql.conf.sample
+RUN echo "max_replication_slots=10" >> /usr/share/postgresql/postgresql.conf.sample
+RUN echo "hot_standby_feedback=on" >> /usr/share/postgresql/postgresql.conf.sample
+RUN echo "log_replication_commands=on" >> /usr/share/postgresql/postgresql.conf.sample
