@@ -1,12 +1,7 @@
-CREATE USER repl_user WITH REPLICATION ENCRYPTED PASSWORD 'Qq12345';
-SELECT pg_create_physical_replication_slot('replication_slot');
-
-CREATE TABLE hba ( lines text );
-COPY hba FROM '/var/lib/postgresql/data/pg_hba.conf';
-INSERT INTO hba (lines) VALUES ('host replication all 0.0.0.0/0 md5');
-COPY hba TO '/var/lib/postgrsql/data/pg_hba.conf';
-SELECT pg_reload_conf();
-
+SELECT 'CREATE DATABASE replaceDB_DATABASE'
+WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'replaceDBNAME')\gexec
+CREATE USER replaceDB_REPL_USER WITH REPLICATION ENCRYPTED PASSWORD 'replaceDB_REPL_PASSWORD';
+\c replaceDB_DATABASE;
 CREATE TABLE emails (
     id INT PRIMARY KEY,
     email VARCHAR(255) NOT NULL
@@ -17,5 +12,5 @@ CREATE TABLE phone_numbers (
 );
 
 INSERT INTO emails (id, email) VALUES (1, 'test1@example.com'), (2, 'test2@example.com');
-INSERT INTO phone_numbers (id, phone_number) VALUES (1, '8 (111) 111-11-11'), (2, '8 (222) 222-22-22'); 
+INSERT INTO phone_numbers (id, phone_number) VALUES (1, '8 (111) 111-11-11'), (2, '8 (222) 222-22-22');
 
