@@ -129,7 +129,7 @@ def findPhoneNumbersCommand(update: Update, context: CallbackContext):
 def find_phone_number(update: Update, context: CallbackContext):
     global phoneNumberList
     user_input = update.message.text # Получаем текст, содержащий(или нет) номера телефонов
-    phoneNumRegex = re.compile(r'8 \(\d{3}\) \d{3}-\d{2}-\d{2}') # формат 8 (000) 000-00-00
+    phoneNumRegex = re.compile(r'(?:\+7|8)(?: \(\d{3}\) \d{3}-\d{2}-\d{2}|\d{10}|\(\d{3}\)\d{7}| \d{3} \d{3} \d{2} \d{2}| \(\d{3}\) \d{3} \d{2} \d{2}|-\d{3}-\d{3}-\d{2}-\d{2})')
     phoneNumberList = phoneNumRegex.findall(user_input) # Ищем номера телефонов
 
     if not phoneNumberList: # Обрабатываем случай, когда номеров телефонов нет
@@ -186,10 +186,28 @@ def verify_passwordCommand(update: Update, context: CallbackContext):
 
 def verify_password(update: Update, context: CallbackContext) -> None:
     password = update.message.text
-    if re.match(r'^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$', password):
-        update.message.reply_text("Пароль сложный")
+    lenFlag = A_ZFlag = a_zFlag = num_Flag = spe_symFlag = 0
+
+    spe_sym = "!@#$%^&*()"
+
+    if len(password) > 7:
+        lenFlag = 1
+
+    for i in password:
+        if i.isalpha():
+            if i.isupper():
+                A_ZFlag = 1
+            else:
+                a_zFlag = 1
+        elif i.isdigit():
+            num_Flag = 1
+        elif i in spe_sym:
+            spe_symFlag = 1
+
+    if lenFlag * A_ZFlag * a_zFlag * num_Flag * spe_symFlag == 0:
+        update.message.reply_text('Пароль простой')
     else:
-        update.message.reply_text("Пароль простой")
+        update.message.reply_text('Пароль сложный')
 
     return ConversationHandler.END
 
@@ -303,10 +321,23 @@ def get_ss(update: Update, context: CallbackContext) -> None:
     ss_info = execute_command("ss -tuln")
     update.message.reply_text(ss_info)
 
+def get_apt_listCommand(update: Update, context: CallbackContext):
+    update.message.reply_text('Введите --all, если хотите получить данные обо всех установленных пакетах, или --find [имя пакета], если хотите узнать данные о конкретном пакете')
+
+    return 'get_apt_list'
+
 def get_apt_list(update: Update, context: CallbackContext) -> None:
     ssh_connect()
-    apt_list_info = execute_command("apt list --installed | head -n 10")
-    update.message.reply_text(apt_list_info)
+    user_input = update.message.text
+    if (user_input[:5] == "--all"):
+        data = execute_command("apt list --installed | head -n 10")
+        update.message.reply_text(data)
+    elif (user_input[:6] == "--find"):
+        command = "apt show " + user_input[7:]
+        data = execute_command(command)
+        update.message.reply_text(data)
+    return ConversationHandler.END
+
 
 def get_services(update: Update, context: CallbackContext) -> None:
     ssh_connect()
@@ -348,6 +379,15 @@ def main() -> None:
         fallbacks=[]
     )
 
+    #Обработчик диалога get_apt_list
+    convHandlerget_apt_list = ConversationHandler(
+        entry_points=[CommandHandler('get_apt_list', get_apt_listCommand)],
+        states={
+            'get_apt_list': [MessageHandler(Filters.text & ~Filters.command, get_apt_list)],
+        },
+        fallbacks=[]
+    )
+
     # Регистрируем обработчики команд
     dispatcher.add_handler(CommandHandler("start", start))
     dispatcher.add_handler(convHandlerfind_email)
@@ -365,11 +405,11 @@ def main() -> None:
     dispatcher.add_handler(CommandHandler("get_critical", get_critical))
     dispatcher.add_handler(CommandHandler("get_ps", get_ps))
     dispatcher.add_handler(CommandHandler("get_ss", get_ss))
-    dispatcher.add_handler(CommandHandler("get_apt_list", get_apt_list))
+    dispatcher.add_handler(convHandlerget_apt_list)
     dispatcher.add_handler(CommandHandler("get_services", get_services))
     dispatcher.add_handler(CommandHandler("get_emails", get_emails))
     dispatcher.add_handler(CommandHandler("get_phone_numbers", get_phone_numbers))
-    
+
     # Запускаем бота
     updater.start_polling()
     updater.idle()
