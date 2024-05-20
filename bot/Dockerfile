@@ -1,11 +1,8 @@
 FROM python:latest
 
-WORKDIR /bot
-
-COPY requirements.txt requirements.txt
-
-RUN pip install --no-cache-dir -r requirements.txt
-
 COPY . /bot
+WORKDIR /bot
+RUN mkdir -p logs
+RUN python3 -m pip install -r requirements.txt --no-cache-dir
 
 CMD ["python", "bot.py"]
